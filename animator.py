@@ -44,6 +44,7 @@ class FaceAnimator(object):
             
     def _init_exp_bases(self, exp_bases_path, eye_index_path):
         self.exp_bases = np.load(exp_bases_path)
+        print(self.exp_bases.shape)
         self.exp_num, self.vertices_num, _ = self.exp_bases.shape
         self.exp_bases = np.reshape(self.exp_bases, (self.exp_num, -1))
         if os.path.isfile(eye_index_path):
@@ -91,7 +92,7 @@ class FaceAnimator(object):
             while True:
                 data, addr = self.tcp_client.recvfrom(1024)
                 self.raw_data = data.decode()
-                print(f'\r[Face Animation Client] From Server: {data.decode()}', end='')
+                # print(f'\r[Face Animation Client] From Server: {data.decode()}', end='')
         except Exception as e:
             print(f"\n[Face Animation Client] Lose Connection with Server {self.ip}:{self.port}, error message: {e}")
             
@@ -102,10 +103,15 @@ class FaceAnimator(object):
             # update coeff
             self.coeff_raw = np.array([float(x) for x in self.raw_data.split(',')])
             coeff = np.zeros(self.exp_num)
-            coeff[0] = self.coeff_raw[25]/80
-            coeff[1] = self.coeff_raw[13]/80
-            coeff[2] = self.coeff_raw[12]/80
-            # coeff = self.coeff_raw[:len(coeff)] # for debug
+            coeff[0] = self.coeff_raw[25]/80 # Mouth Open
+            coeff[1] = self.coeff_raw[13]/80 # Left Eye Close
+            coeff[1] = coeff[1] * coeff[1] * coeff[1] # eye tweak
+            coeff[2] = self.coeff_raw[12]/80 # Right Eye Close
+            coeff[2] = coeff[2] * coeff[2] * coeff[2] # eye tweak
+            coeff[3] = self.coeff_raw[27]/80 # Lips Funnel
+            coeff[4] = self.coeff_raw[5]/80 # Brows Center Up
+            coeff[5] = self.coeff_raw[6]/80 # Brows Left Up
+            coeff[6] = self.coeff_raw[7]/80 # Brows Right Up
             # update vertices (shape)
             v = (coeff @ self.exp_bases).reshape(self.vertices_num, 3) + self.mean_shape
             if self.eye_index is not None:
@@ -136,4 +142,5 @@ class FaceAnimator(object):
             
 if __name__ == "__main__":
     fa = FaceAnimator("127.0.0.1", 985, "./sample/sample4/model_fine.obj", "./mlib/exp_bases.npy", "./sample/sample4/input.png", "./mlib/eye_idx.txt")
+    # fa = FaceAnimator("127.0.0.1", 985, "../data/output/face (5)_01/model_fine.obj", "./mlib/exp_bases.npy", "../data/output/face (5)_01/input.png", "./mlib/eye_idx.txt")
     fa.start()
