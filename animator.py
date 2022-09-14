@@ -105,9 +105,7 @@ class FaceAnimator(object):
             coeff[0] = self.coeff_raw[25]/80
             coeff[1] = self.coeff_raw[13]/80
             coeff[2] = self.coeff_raw[12]/80
-            # coeff[0] = self.coeff_raw[0]
-            # coeff[1] = self.coeff_raw[1]
-            # coeff[2] = self.coeff_raw[2]
+            # coeff = self.coeff_raw[:len(coeff)] # for debug
             # update vertices (shape)
             v = (coeff @ self.exp_bases).reshape(self.vertices_num, 3) + self.mean_shape
             if self.eye_index is not None:
